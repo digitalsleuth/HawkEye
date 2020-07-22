@@ -21,6 +21,6 @@ setup(
     entry_points={
         "console_scripts": [
             "hawkeye = hawkeye.HawkEye:main",
-        [,
+        ],
     },
 )
