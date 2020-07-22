@@ -253,64 +253,64 @@ def instrument(pid, ppid, name, is_spawned):
 		device.resume(pid)
 
 ##########################################################################################################
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--path", help="File path")
+    parser.add_argument("--pid", help="Process PID")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--path", help="File path")
-parser.add_argument("--pid", help="Process PID")
+    args = parser.parse_args()
+    if args.path:
+        pid = device.spawn(args.path)
+        path = args.path.split('\\')[-1]
+        instrument(pid, 0, path, 1)
+    elif args.pid:
+        instrument(int(args.pid), 0, "", 0)
+    else:
+        parser.print_help()
+        sys.exit()
 
-args = parser.parse_args()
-if args.path:
-	pid = device.spawn(args.path)
-	path = args.path.split('\\')[-1]
-	instrument(pid, 0, path, 1)
-elif args.pid:
-	instrument(int(args.pid), 0, "", 0)
-else:
-	parser.print_help()
-	sys.exit()
+    input("Analysis Started: Press Enter to kill it at any time!\n\n")
+    print("Analysis Finished!")
+    # frida.kill(pid) # or maybe loop through processes
 
-input("Analysis Started: Press Enter to kill it at any time!\n\n")
-print("Analysis Finished!")
-# frida.kill(pid) # or maybe loop through processes
+    ##########################################################################################################
 
-##########################################################################################################
+    report["processes"] = proc_data
 
-report["processes"] = proc_data
+    report["files"]["created"]  = list(created_files)
+    report["files"]["modified"] = list(modified_files)
+    report["files"]["deleted"]  = list(deleted_files)
+    report["files"]["moved"]    = moved_files
+    report["files"]["copied"]   = copied_files
 
-report["files"]["created"]  = list(created_files)
-report["files"]["modified"] = list(modified_files)
-report["files"]["deleted"]  = list(deleted_files)
-report["files"]["moved"]    = moved_files
-report["files"]["copied"]   = copied_files
+    report["registry"]["set"]     = list(set_regs)
+    report["registry"]["queried"] = list(queried_regs)
+    report["registry"]["deleted"] = list(deleted_regs)
 
-report["registry"]["set"]     = list(set_regs)
-report["registry"]["queried"] = list(queried_regs)
-report["registry"]["deleted"] = list(deleted_regs)
+    report["network"]["urls"] = list(accesed_urls)
+    report["network"]["dns"]  = list(dns_domains)
 
-report["network"]["urls"] = list(accesed_urls)
-report["network"]["dns"]  = list(dns_domains)
+    report["general"]["commands"] = list(executed_commands)
+    report["general"]["imports"]  = list(dynamic_imports)
+    report["general"]["mutexes"]  = list(mutexes)
 
-report["general"]["commands"] = list(executed_commands)
-report["general"]["imports"]  = list(dynamic_imports)
-report["general"]["mutexes"]  = list(mutexes)
+    os.chdir('report')
+    if not os.path.exists('output'):
+        os.makedirs('output')
+    with open(os.path.join('output', 'data.json'), 'w') as f:
+        json.dump(report, f)
 
-os.chdir('report')
-if not os.path.exists('output'):
-    os.makedirs('output')
-with open(os.path.join('output', 'data.json'), 'w') as f:
-	json.dump(report, f)
+    ##########################################################################################################
 
-##########################################################################################################
+    server_address = ('', 1337)
+    httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
 
-server_address = ('', 1337)
-httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
+    server_thread = threading.Thread(name='background', target=httpd.serve_forever)
+    server_thread.start()
 
-server_thread = threading.Thread(name='background', target=httpd.serve_forever)
-server_thread.start()
+    print('Starting a web server...')
+    time.sleep(3)	# sleep until the server starts
+    webbrowser.open('127.0.0.1:1337', new=2)   # open in a new tab
 
-print('Starting a web server...')
-time.sleep(3)	# sleep until the server starts
-webbrowser.open('127.0.0.1:1337', new=2)   # open in a new tab
-
-input("Web server started: Press Enter to exit!\n\n")
-httpd.shutdown()	# kill the server
+    input("Web server started: Press Enter to exit!\n\n")
+    httpd.shutdown()	# kill the server
