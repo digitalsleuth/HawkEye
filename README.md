@@ -1,4 +1,4 @@
-<img src="report/images/logo2.png" width=430 height=180 />
+<img src="hawkeye/report/images/logo2.png" width=430 height=180 />
 
 # HawkEye
 
@@ -74,7 +74,7 @@ HawkEye runs in 2 modes:
 
 # Example Report
 
-<img src="report/images/report1.png" /> <img src="report/images/report2.png" />
+<img src="hawkeye/report/images/report1.png" /> <img src="hawkeye/report/images/report2.png" />
 
 I've also uploaded a video for a full report from analysis to final results.
 
